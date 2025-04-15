@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
-const chromium = require('chrome-aws-lambda');
-const playwright = require('playwright-core');
+const { chromium } = require('playwright-core');
+const chrome = require('chrome-aws-lambda');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,13 +17,15 @@ app.post('/delete', async (req, res) => {
   broadcast('⏳ Logging into Salesforce...');
 
   try {
-    // If browser is already running, close it
+    // Close browser if already running
     if (currentBrowser) await currentBrowser.close();
 
-    currentBrowser = await playwright.chromium.launch({
-      args: chromium.args,
-      executablePath: await chromium.executablePath,
-      headless: chromium.headless,
+    const executablePath = await chrome.executablePath;
+
+    currentBrowser = await chromium.launch({
+      args: chrome.args,
+      executablePath,
+      headless: chrome.headless,
     });
 
     const context = await currentBrowser.newContext();
@@ -34,7 +36,6 @@ app.post('/delete', async (req, res) => {
     await page.getByLabel('Password').fill(password);
     await page.getByRole('button', { name: 'Log In' }).click();
 
-    // Wait for login to complete
     await page.waitForSelector('text=Leads', { timeout: 30000 });
     broadcast('✅ Logged in. Navigating to Leads...');
 
