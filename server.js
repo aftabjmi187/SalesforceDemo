@@ -1,7 +1,7 @@
 const express = require('express');
 const path = require('path');
-const chromium = require('playwright-core');
 const chrome = require('chrome-aws-lambda');
+const playwright = require('playwright-core');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -19,12 +19,10 @@ app.post('/delete', async (req, res) => {
   try {
     if (currentBrowser) await currentBrowser.close();
 
-    const executablePath = await chrome.executablePath;
-
-    currentBrowser = await chromium.launch({
-      headless: true,
-      executablePath,
+    currentBrowser = await playwright.chromium.launch({
       args: chrome.args,
+      executablePath: await chrome.executablePath,
+      headless: chrome.headless
     });
 
     const context = await currentBrowser.newContext();
@@ -42,7 +40,6 @@ app.post('/delete', async (req, res) => {
       try {
         await page.click('text=Leads');
         await page.waitForTimeout(2000);
-
         await page.click('text=Mass Delete Leads');
         await page.waitForTimeout(2000);
 
