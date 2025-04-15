@@ -5,14 +5,10 @@
   "scripts": {
     "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "dependencies": {
     "chrome-aws-lambda": "^10.1.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "playwright-core": "^1.51.1"
-  },
-  "description": ""
+  }
 }
