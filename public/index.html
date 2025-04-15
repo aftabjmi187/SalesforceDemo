@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Salesforce Bulk Deletion Panel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+      padding: 2rem;
+      max-width: 500px;
+      margin: auto;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      border-radius: 10px;
+      background-color: #fff;
+    }
+    .form-note {
+      font-size: 1rem;
+      font-weight: bold;
+      color: #444;
+      text-align: center;
+      margin-top: -1rem;
+      margin-bottom: 1rem;
+    }
+    h2 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    input[type="text"], input[type="password"] {
+      margin: 0.5rem 0;
+      padding: 0.7rem;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    button {
+      flex: 1;
+      padding: 0.7rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .delete-btn {
+      background: #008000;
+      color: white;
+    }
+    .cancel-btn {
+      background: #d9534f;
+      color: white;
+    }
+    .show-password {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+    pre {
+      background: #f4f4f4;
+      padding: 1rem;
+      margin-top: 1.5rem;
+      white-space: pre-wrap;
+      height: 300px;
+      overflow-y: auto;
+      border-radius: 5px;
+      border: 1px solid #ddd;
+    }
+  </style>
+</head>
+<body>
+  <h2>Salesforce Bulk Deletion Panel</h2>
+  <p class="form-note">Delete Leads</p>
+  <input type="text" id="username" placeholder="Username (e.g. user@domain.com)">
+  <input type="password" id="password" placeholder="Password">
+  <div class="show-password">
+    <input type="checkbox" id="togglePassword" onclick="togglePassword()"> 
+    <label for="togglePassword">Show Password</label>
+  </div>
+  <div class="button-group">
+    <button class="delete-btn" onclick="startDeletion()">Login & Delete</button>
+    <button class="cancel-btn" onclick="cancelOperation()">Cancel</button>
+  </div>
+  <pre id="output"></pre>
+
+  <script>
+    let eventSource;
+
+    function togglePassword() {
+      const passwordField = document.getElementById('password');
+      passwordField.type = passwordField.type === 'password' ? 'text' : 'password';
+    }
+
+    function cancelOperation() {
+      fetch('/cancel', { method: 'POST' });
+      document.getElementById('output').textContent += '❌ Operation cancelled by user.\n';
+    }
+
+    function startDeletion() {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const output = document.getElementById('output');
+
+      if (!username || !password) {
+        alert("Please enter both email and password.");
+        return;
+      }
+
+      output.textContent = '⏳ Starting deletion...\n';
+
+      fetch('/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+
+      if (eventSource) eventSource.close(); // Close any old stream
+      eventSource = new EventSource('/logs');
+
+      eventSource.onmessage = function (event) {
+        output.textContent += event.data + '\n';
+        output.scrollTop = output.scrollHeight;
+      };
+
+      eventSource.onerror = function () {
+        output.textContent += '⚠️ Connection lost.\n';
+        eventSource.close();
+      };
+    }
+  </script>
+</body>
+</html>
