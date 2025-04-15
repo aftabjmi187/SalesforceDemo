@@ -15,9 +15,10 @@ app.post('/delete', async (req, res) => {
   broadcast('⏳ Logging into Salesforce...');
 
   try {
+    // If browser is already running, close it
     if (currentBrowser) await currentBrowser.close();
 
-    currentBrowser = await chromium.launch({ headless: true }); // headless true for Render
+    currentBrowser = await chromium.launch({ headless: false });
     const context = await currentBrowser.newContext();
     const page = await context.newPage();
 
@@ -26,6 +27,7 @@ app.post('/delete', async (req, res) => {
     await page.getByLabel('Password').fill(password);
     await page.getByRole('button', { name: 'Log In' }).click();
 
+    // Wait for login to complete
     await page.waitForSelector('text=Leads', { timeout: 30000 });
     broadcast('✅ Logged in. Navigating to Leads...');
 
@@ -33,6 +35,7 @@ app.post('/delete', async (req, res) => {
       try {
         await page.click('text=Leads');
         await page.waitForTimeout(2000);
+
         await page.click('text=Mass Delete Leads');
         await page.waitForTimeout(2000);
 
