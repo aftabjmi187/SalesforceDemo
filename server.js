@@ -1,6 +1,6 @@
 const express = require('express');
 const path = require('path');
-const { chromium } = require('playwright-core');
+const chromium = require('playwright-core');
 const chrome = require('chrome-aws-lambda');
 
 const app = express();
@@ -17,15 +17,14 @@ app.post('/delete', async (req, res) => {
   broadcast('⏳ Logging into Salesforce...');
 
   try {
-    // Close browser if already running
     if (currentBrowser) await currentBrowser.close();
 
     const executablePath = await chrome.executablePath;
 
     currentBrowser = await chromium.launch({
-      args: chrome.args,
+      headless: true,
       executablePath,
-      headless: chrome.headless,
+      args: chrome.args,
     });
 
     const context = await currentBrowser.newContext();
