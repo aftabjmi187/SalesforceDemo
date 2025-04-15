@@ -1,7 +1,8 @@
 const express = require('express');
 const path = require('path');
-const { chromium } = require('playwright');
-require('playwright/install').install({ browsers: ['chromium'] }); 
+const chromium = require('chrome-aws-lambda');
+const playwright = require('playwright-core');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -19,7 +20,12 @@ app.post('/delete', async (req, res) => {
     // If browser is already running, close it
     if (currentBrowser) await currentBrowser.close();
 
-    currentBrowser = await chromium.launch({ headless: false });
+    currentBrowser = await playwright.chromium.launch({
+      args: chromium.args,
+      executablePath: await chromium.executablePath,
+      headless: chromium.headless,
+    });
+
     const context = await currentBrowser.newContext();
     const page = await context.newPage();
 
