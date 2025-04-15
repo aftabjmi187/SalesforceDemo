@@ -1,6 +1,7 @@
 const express = require('express');
 const path = require('path');
 const { chromium } = require('playwright');
+require('playwright/install').install({ browsers: ['chromium'] }); 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
